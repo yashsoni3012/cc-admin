@@ -1,27 +1,43 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom'; // 1. Import Outlet
+import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom'; // Add Navigate
 import './App.css';
 
 import ScrollToTop from './components/ScrollToTop';
 import Login from './pages/Login';
-// import About from './pages/About';
-// import Home from './pages/Home';
-// import ContactUs from './pages/ContactUs';
 import AdminDashboard from './pages/AdminDashboard';
 import Category from './components/AdminComponents/CategoryManager';
-// import NavBar from './components/Navbar';
 import Footer from './components/Footer';
 
-// 2. Create a Layout Component
-// This component renders the Navbar, the child page (Outlet), and the Footer
-const MainLayout = () => {
+// Protected Route wrapper component
+const ProtectedRoute = ({ children }) => {
+  const isAdmin = localStorage.getItem('isAdmin');
+  
+  if (!isAdmin) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return children;
+};
+
+// Layout for protected routes (with footer)
+const ProtectedLayout = () => {
   return (
     <>
-      {/* <NavBar /> */}
       <div className="main-content">
-        <Outlet /> {/* This represents the component of the current route (e.g., Home, About) */}
+        <Outlet />
       </div>
       <Footer />
+    </>
+  );
+};
+
+// Layout for public routes (without footer or with different footer)
+const PublicLayout = () => {
+  return (
+    <>
+      <div className="main-content">
+        <Outlet />
+      </div>
     </>
   );
 };
@@ -32,17 +48,41 @@ function App() {
       <ScrollToTop />
       <div className="App">
         <Routes>
-
-          <Route element={<MainLayout />}>
-            {/* <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<ContactUs />} /> */}
+          {/* Public routes - no authentication required */}
+          <Route element={<PublicLayout />}>
             <Route path="/login" element={<Login />} />
           </Route>
 
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/category" element={<Category />} />
+          {/* Protected routes - require authentication */}
+          <Route element={<ProtectedLayout />}>
+            <Route 
+              path="/" 
+              element={
+                <ProtectedRoute>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/category" 
+              element={
+                <ProtectedRoute>
+                  <Category />
+                </ProtectedRoute>
+              } 
+            />
+            {/* Add other protected routes here */}
+          </Route>
 
+          {/* Catch all unknown routes - redirect to login or dashboard based on auth */}
+          <Route 
+            path="*" 
+            element={
+              localStorage.getItem('isAdmin') ? 
+              <Navigate to="/" replace /> : 
+              <Navigate to="/login" replace />
+            } 
+          />
         </Routes>
       </div>
     </Router>

@@ -13,8 +13,12 @@ const Spinner = () => (
 );
 
 const CourseManager = () => {
-  const { data: courses, loading: loadingCourses, setData: setCourses } = useFetch(API.COURSES.LIST);
+  // Fetch courses (returns wrapped object with data array)
+  const { data: coursesResponse, loading: loadingCourses, setData: setCoursesResponse } = useFetch(API.COURSES.LIST);
+  
+  // Fetch categories (returns DIRECT array - no wrapper)
   const { data: categories, loading: loadingCats } = useFetch(API.CATEGORY.LIST);
+  
   const { submitData, loading: submitting } = useSubmit();
   const { toast, showToast, closeToast } = useToast();
 
@@ -22,6 +26,9 @@ const CourseManager = () => {
   const [editingId, setEditingId] = useState(null);
   const [deleteModal, setDeleteModal] = useState({ show: false, id: null });
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Extract courses array from the wrapped response
+  const courses = coursesResponse?.data || [];
 
   const initialFormState = {
     category: "", name: "", text: "", duration: "", lecture: "",
@@ -34,15 +41,12 @@ const CourseManager = () => {
   const getFileUrl = (fileOrUrl) => {
     if (!fileOrUrl) return null;
     
-    // 1. If it's a new File object (Upload Preview)
     if (fileOrUrl instanceof File) {
         return URL.createObjectURL(fileOrUrl);
     }
 
-    // 2. If it's an existing URL String (Backend Data)
     if (typeof fileOrUrl === 'string') {
         if (fileOrUrl.startsWith("http") || fileOrUrl.startsWith("blob:")) return fileOrUrl;
-        // Fix relative paths from Django
         const BASE_DOMAIN = "https://codingcloud.pythonanywhere.com";
         return `${BASE_DOMAIN}${fileOrUrl}`;
     }
@@ -53,7 +57,6 @@ const CourseManager = () => {
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
   const handleFile = (e) => setFormData({ ...formData, [e.target.name]: e.target.files[0] });
 
-  // --- ✅ FIXED: Load existing images into state ---
   const handleEdit = (item) => {
     setFormData({
       category: item.category || "",
@@ -65,7 +68,6 @@ const CourseManager = () => {
       students: item.students || "",
       certificate: item.certificate || "No",
       language: item.language || "English",
-      // Store the URL string so we can preview it
       image: item.image, 
       banner_img: item.banner_img, 
       pdf_file: item.pdf_file
@@ -97,24 +99,16 @@ const CourseManager = () => {
     const studentCount = formData.students ? formData.students : 0;
     formDataToSend.append("students", studentCount);
 
-    // --- Files Logic ---
-    // Only append if it's a NEW file (Object). If it's a String (URL), ignore it (keep old).
     if (formData.image instanceof File) {
         formDataToSend.append("image", formData.image);
-    } else if (!editingId) {
-        formDataToSend.append("image", ""); // Send empty only on Create
     }
 
     if (formData.banner_img instanceof File) {
         formDataToSend.append("banner_img", formData.banner_img);
-    } else if (!editingId) {
-        formDataToSend.append("banner_img", "");
     }
 
     if (formData.pdf_file instanceof File) {
         formDataToSend.append("pdf_file", formData.pdf_file);
-    } else if (!editingId) {
-        formDataToSend.append("pdf_file", "");
     }
 
     let result;
@@ -123,24 +117,23 @@ const CourseManager = () => {
       result = await submitData(API.COURSES.DETAIL(editingId), formDataToSend, true, 'PATCH');
       
       if (result.success) {
-        setCourses((prev) =>
-          prev.map((item) => {
+        setCoursesResponse(prev => {
+          const updatedData = prev.data.map((item) => {
             if (item.id === editingId) {
-              const updatedItem = { ...item, ...result.data };
-              updatedItem.name = formData.name;
-              updatedItem.level = formData.level;
-              updatedItem.students = studentCount;
-              updatedItem.language = formData.language;
-              updatedItem.category = formData.category;
-              
-              // Update preview
-              if (formData.image instanceof File) updatedItem.image = URL.createObjectURL(formData.image);
-              
-              return updatedItem;
+              return {
+                ...item,
+                ...result.data,
+                name: formData.name,
+                level: formData.level,
+                students: studentCount,
+                language: formData.language,
+                category: parseInt(formData.category),
+              };
             }
             return item;
-          })
-        );
+          });
+          return { ...prev, data: updatedData };
+        });
         showToast("Course updated successfully!", "success");
         resetForm();
       } else {
@@ -155,13 +148,10 @@ const CourseManager = () => {
       result = await submitData(API.COURSES.LIST, formDataToSend, true, 'POST');
       
       if (result.success) {
-        const newItem = {
-          id: result.data.id,
-          ...formData,
-          students: studentCount,
-          image: result.data.image || (formData.image instanceof File ? URL.createObjectURL(formData.image) : null)
-        };
-        setCourses((prev) => [...prev, newItem]);
+        setCoursesResponse(prev => ({
+          ...prev,
+          data: [...prev.data, result.data]
+        }));
         showToast("New course added successfully!", "success");
         resetForm();
       } else {
@@ -174,7 +164,6 @@ const CourseManager = () => {
     }
   };
 
-  // --- DELETE HANDLERS ---
   const promptDelete = (id) => setDeleteModal({ show: true, id });
 
   const confirmDelete = async () => {
@@ -186,15 +175,16 @@ const CourseManager = () => {
     setIsDeleting(false);
 
     if (result.success) {
-      setCourses((prev) => prev.filter((item) => item.id !== id));
+      setCoursesResponse(prev => ({
+        ...prev,
+        data: prev.data.filter((item) => item.id !== id)
+      }));
       showToast("Course deleted successfully", "success");
       setDeleteModal({ show: false, id: null });
     } else {
       showToast("Delete failed", "error");
     }
   };
-
-  const safeCourses = Array.isArray(courses) ? courses : [];
 
   return (
     <div className="container mx-auto p-5 min-h-screen">
@@ -229,30 +219,38 @@ const CourseManager = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {safeCourses.map((item, index) => (
-                <tr key={item.id || `temp-${index}`} className="hover:bg-blue-50 transition">
-                  <td className="py-4 px-6 text-gray-500">{index + 1}</td>
-                  <td className="py-4 px-6">
-                    {item.image ? (
-                      <img src={getFileUrl(item.image)} className="h-12 w-12 object-cover rounded-lg border border-gray-300"
-                        onError={(e) => { e.target.src = "https://via.placeholder.com/50?text=Err"; }} alt={item.name} />
-                    ) : <div className="text-xs text-gray-500">No Img</div>}
-                  </td>
-                  <td className="py-4 px-6 font-bold">{item.name}</td>
-                  <td className="py-4 px-6 text-gray-600">{item.level}</td>
-                  <td className="py-4 px-6 text-gray-600 font-semibold">{item.lecture || 0}</td>
-                  <td className="py-4 px-6 text-gray-600 font-semibold">{item.duration || 0}</td>
-                  <td className="py-4 px-6 text-gray-600">{item.language}</td>
-                  <td className="py-4 px-6 text-center flex justify-center gap-3">
-                    <button onClick={() => handleEdit(item)} className="bg-amber-500 text-white p-2 rounded hover:bg-amber-600 shadow-sm transition cursor-pointer">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                    </button>
-                    <button onClick={() => promptDelete(item.id)} className="bg-red-500 text-white p-2 rounded hover:bg-red-600 shadow-sm transition cursor-pointer">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
+              {courses.length > 0 ? (
+                courses.map((item, index) => (
+                  <tr key={item.id || `temp-${index}`} className="hover:bg-blue-50 transition">
+                    <td className="py-4 px-6 text-gray-500">{index + 1}</td>
+                    <td className="py-4 px-6">
+                      {item.image ? (
+                        <img src={getFileUrl(item.image)} className="h-12 w-12 object-cover rounded-lg border border-gray-300"
+                          onError={(e) => { e.target.src = "https://via.placeholder.com/50?text=Err"; }} alt={item.name} />
+                      ) : <div className="text-xs text-gray-500">No Img</div>}
+                    </td>
+                    <td className="py-4 px-6 font-bold">{item.name}</td>
+                    <td className="py-4 px-6 text-gray-600">{item.level || 'N/A'}</td>
+                    <td className="py-4 px-6 text-gray-600 font-semibold">{item.lecture || 0}</td>
+                    <td className="py-4 px-6 text-gray-600 font-semibold">{item.duration || 0}</td>
+                    <td className="py-4 px-6 text-gray-600">{item.language || 'N/A'}</td>
+                    <td className="py-4 px-6 text-center flex justify-center gap-3">
+                      <button onClick={() => handleEdit(item)} className="bg-amber-500 text-white p-2 rounded hover:bg-amber-600 shadow-sm transition cursor-pointer">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                      </button>
+                      <button onClick={() => promptDelete(item.id)} className="bg-red-500 text-white p-2 rounded hover:bg-red-600 shadow-sm transition cursor-pointer">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="8" className="py-10 text-center text-gray-400">
+                    No courses found. Click "Add New Course" to create one.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         )}
@@ -267,87 +265,176 @@ const CourseManager = () => {
             </h2>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               
+              {/* Category Select - Now properly fetching from API */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Category</label>
-                <select name="category" value={formData.category} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" required>
+                <select 
+                  name="category" 
+                  value={formData.category} 
+                  onChange={handleChange} 
+                  className="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" 
+                  required
+                >
                   <option value="">-- Select Category --</option>
-                  {loadingCats ? <option>Loading...</option> : categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                  {loadingCats ? (
+                    <option disabled>Loading categories...</option>
+                  ) : (
+                    categories && categories.map(cat => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))
+                  )}
                 </select>
+                {/* Show message if no categories */}
+                {!loadingCats && (!categories || categories.length === 0) && (
+                  <p className="text-xs text-red-500 mt-1">No categories found</p>
+                )}
               </div>
 
-              <input type="text" name="name" placeholder="Course Name" className="p-3 border rounded-lg w-full outline-none focus:ring-2 focus:ring-blue-500" value={formData.name} onChange={handleChange} required />
-              <textarea name="text" placeholder="Course Description" className="p-3 border rounded-lg w-full outline-none focus:ring-2 focus:ring-blue-500" rows="3" value={formData.text} onChange={handleChange} required />
+              <input 
+                type="text" 
+                name="name" 
+                placeholder="Course Name" 
+                className="p-3 border rounded-lg w-full outline-none focus:ring-2 focus:ring-blue-500" 
+                value={formData.name} 
+                onChange={handleChange} 
+                required 
+              />
+              
+              <textarea 
+                name="text" 
+                placeholder="Course Description" 
+                className="p-3 border rounded-lg w-full outline-none focus:ring-2 focus:ring-blue-500" 
+                rows="3" 
+                value={formData.text} 
+                onChange={handleChange} 
+                required 
+              />
 
-              {/* --- ✅ FIXED IMAGE PREVIEWS IN FORM --- */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Course Image */}
                 <div>
                   <label className="block text-xs font-bold text-gray-500 mb-1">Course Image</label>
-                  <div className="border border-gray-300 rounded-lg p-2 bg-gray-50 flex items-center gap-3">
-                    {/* Preview */}
+                  <div className="border border-gray-300 rounded-lg p-2 bg-gray-50">
                     {formData.image && (
+                      <div className="mb-2">
                         <img 
-                            src={getFileUrl(formData.image)} 
-                            className="h-10 w-10 object-cover rounded bg-gray-200 border" 
-                            alt="Preview" 
+                          src={getFileUrl(formData.image)} 
+                          className="h-20 w-20 object-cover rounded bg-gray-200 border mx-auto" 
+                          alt="Preview" 
                         />
+                      </div>
                     )}
-                    <input type="file" name="image" onChange={handleFile} accept="image/*" className="w-full text-sm text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" />
+                    <input 
+                      type="file" 
+                      name="image" 
+                      onChange={handleFile} 
+                      accept="image/*" 
+                      className="w-full text-sm text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" 
+                    />
                   </div>
                 </div>
 
-                {/* Banner Image */}
                 <div>
                   <label className="block text-xs font-bold text-gray-500 mb-1">Banner Image</label>
-                  <div className="border border-gray-300 rounded-lg p-2 bg-gray-50 flex items-center gap-3">
-                    {/* Preview */}
+                  <div className="border border-gray-300 rounded-lg p-2 bg-gray-50">
                     {formData.banner_img && (
+                      <div className="mb-2">
                         <img 
-                            src={getFileUrl(formData.banner_img)} 
-                            className="h-10 w-10 object-cover rounded bg-gray-200 border" 
-                            alt="Preview" 
+                          src={getFileUrl(formData.banner_img)} 
+                          className="h-20 w-20 object-cover rounded bg-gray-200 border mx-auto" 
+                          alt="Preview" 
                         />
+                      </div>
                     )}
-                    <input type="file" name="banner_img" onChange={handleFile} accept="image/*" className="w-full text-sm text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" />
+                    <input 
+                      type="file" 
+                      name="banner_img" 
+                      onChange={handleFile} 
+                      accept="image/*" 
+                      className="w-full text-sm text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" 
+                    />
                   </div>
                 </div>
               </div>
 
-              {/* PDF File */}
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-1">PDF Syllabus/File</label>
-                <div className="border border-gray-300 rounded-lg p-2 bg-gray-50 flex items-center gap-3">
-                  {/* PDF Status Indicator */}
+                <div className="border border-gray-300 rounded-lg p-2 bg-gray-50">
                   {formData.pdf_file && (
-                      <div className="text-xs text-green-600 font-bold bg-green-100 px-2 py-1 rounded">
-                         PDF Attached
-                      </div>
+                    <div className="mb-2 text-xs text-green-600 font-bold bg-green-100 px-2 py-1 rounded inline-block">
+                      ✓ PDF Attached
+                    </div>
                   )}
-                  <input type="file" name="pdf_file" onChange={handleFile} accept=".pdf" className="w-full text-sm text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" />
+                  <input 
+                    type="file" 
+                    name="pdf_file" 
+                    onChange={handleFile} 
+                    accept=".pdf" 
+                    className="w-full text-sm text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" 
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input type="text" name="duration" placeholder="Duration (e.g. 2 Months)" className="p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" value={formData.duration} onChange={handleChange} />
-                <input type="text" name="lecture" placeholder="Lectures (e.g. 20)" className="p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" value={formData.lecture} onChange={handleChange} />
+                <input 
+                  type="text" 
+                  name="duration" 
+                  placeholder="Duration (e.g. 2 Months)" 
+                  className="p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" 
+                  value={formData.duration} 
+                  onChange={handleChange} 
+                />
+                <input 
+                  type="text" 
+                  name="lecture" 
+                  placeholder="Lectures (e.g. 20)" 
+                  className="p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" 
+                  value={formData.lecture} 
+                  onChange={handleChange} 
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input type="text" name="level" placeholder="Level (e.g. Beginner)" className="p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" value={formData.level} onChange={handleChange} />
-                <input type="number" name="students" placeholder="Students Enrolled (Optional)" className="p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" value={formData.students} onChange={handleChange} />
+                <input 
+                  type="text" 
+                  name="level" 
+                  placeholder="Level (e.g. Beginner)" 
+                  className="p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" 
+                  value={formData.level} 
+                  onChange={handleChange} 
+                />
+                <input 
+                  type="number" 
+                  name="students" 
+                  placeholder="Students Enrolled (Optional)" 
+                  className="p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" 
+                  value={formData.students} 
+                  onChange={handleChange} 
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Certificate</label>
-                  <select name="certificate" value={formData.certificate} onChange={handleChange} className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                  <select 
+                    name="certificate" 
+                    value={formData.certificate} 
+                    onChange={handleChange} 
+                    className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                  >
                     <option value="No">No</option>
                     <option value="Yes">Yes</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Language</label>
-                  <select name="language" value={formData.language} onChange={handleChange} className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                  <select 
+                    name="language" 
+                    value={formData.language} 
+                    onChange={handleChange} 
+                    className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                  >
                     <option value="English">English</option>
                     <option value="Marathi">Marathi</option>
                     <option value="Hindi">Hindi</option>
@@ -356,10 +443,21 @@ const CourseManager = () => {
               </div>
 
               <div className="flex gap-3 mt-4 pt-4 border-t">
-                <button type="submit" disabled={submitting} className="flex-1 bg-[#4522f0] text-white py-3 rounded-lg font-bold hover:bg-[#401afc] flex justify-center items-center gap-2 disabled:opacity-70 cursor-pointer">
+                <button 
+                  type="submit" 
+                  disabled={submitting} 
+                  className="flex-1 bg-[#4522f0] text-white py-3 rounded-lg font-bold hover:bg-[#401afc] flex justify-center items-center gap-2 disabled:opacity-70 cursor-pointer"
+                >
                   {submitting ? <> <Spinner /> Saving... </> : <>{editingId ? "Update Course" : "Save Course"}</>}
                 </button>
-                <button type="button" disabled={submitting} onClick={resetForm} className="flex-1 bg-gray-200 text-gray-800 py-3 rounded-lg font-bold hover:bg-gray-300 cursor-pointer">Cancel</button>
+                <button 
+                  type="button" 
+                  disabled={submitting} 
+                  onClick={resetForm} 
+                  className="flex-1 bg-gray-200 text-gray-800 py-3 rounded-lg font-bold hover:bg-gray-300 cursor-pointer"
+                >
+                  Cancel
+                </button>
               </div>
             </form>
           </div>
