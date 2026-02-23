@@ -7,9 +7,12 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://codingcloud.pythonanywhere.com', // The python server
+        target: 'https://codingcloud.pythonanywhere.com',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        secure: false,
+        // ✅ REWRITE ENABLED: This removes "/api" from the request path.
+        // Frontend: /api/course/  --> Backend: /course/
+        rewrite: (path) => path.replace(/^\/api/, ''), 
       },
     },
   },

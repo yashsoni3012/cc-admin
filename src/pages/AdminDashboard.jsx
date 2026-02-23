@@ -6,11 +6,17 @@ import {
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import AdminProfile from '../components/AdminComponents/AdminProfile'
-import Category from '../components/AdminComponents/Category'
-
+import Category from '../components/AdminComponents/CategoryManager'
+import Course from '../components/AdminComponents/CourseManager'
+import FaqManager from '../components/AdminComponents/FaqManager'
+import ModuleManager from '../components/AdminComponents/ModuleManager'
+import TopicManager from '../components/AdminComponents/TopicManager'
+import TestimonialManager from '../components/AdminComponents/TestimonialManager'
+import RegisterMessageManager from '../components/AdminComponents/RegisterMessageManager'
+import ArticleManager from '../components/AdminComponents/ArticleManager'
 // --- 1. DUMMY ADMIN PROFILE COMPONENT (Content to show when clicked) ---
 
-
+import BannerManager from '../components/AdminComponents/BannerManager';
 
 // --- 2. COUNT UP COMPONENT ---
 const CountUp = ({ end, duration = 2000 }) => {
@@ -95,65 +101,121 @@ const Dashboard = () => {
                             {/* 1. DASHBOARD BUTTON */}
                             <button
                                 onClick={() => setActiveTab('dashboard')}
-                                className={`cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors ${activeTab === 'dashboard'
-                                    ? 'bg-purple-50 text-[#6A4DF4]' // ACTIVE STATE
-                                    : 'text-gray-600 hover:bg-gray-50 hover:text-[#6A4DF4]' // INACTIVE STATE
+                                className={`cursor-pointer w-full flex items-center gap-3 px-4 py-2 rounded-lg font-bold transition-colors ${activeTab === 'dashboard'
+                                    ? 'bg-[#4522f0] text-white' // ACTIVE STATE
+                                    : 'text-gray-600 hover:bg-[#3c21bf] hover:text-white' // INACTIVE STATE
                                     }`}
                             >
                                 <FaHome /> Dashboard
                             </button>
 
                             {/* 2. MY PROFILE BUTTON */}
-                            <button
+                            {/* <button
                                 onClick={() => setActiveTab('profile')}
-                                className={`cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors ${activeTab === 'profile'
-                                    ? 'bg-purple-50 text-[#6A4DF4]' // ACTIVE STATE
-                                    : 'text-gray-600 hover:bg-gray-50 hover:text-[#6A4DF4]' // INACTIVE STATE
+                                className={`cursor-pointer w-full flex items-center gap-3 px-4 py-2 rounded-lg font-bold transition-colors ${activeTab === 'profile'
+                                    ? 'bg-[#4522f0] text-white' // ACTIVE STATE
+                                    : 'text-gray-600 hover:bg-[#3c21bf] hover:text-white' // INACTIVE STATE
                                     }`}
                             >
                                 <FaUser /> My Profile
-                            </button>
+                            </button> */}
 
                             <button
                                 onClick={() => setActiveTab('category')}
-                                className={`cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors ${activeTab === 'category'
-                                    ? 'bg-purple-50 text-[#6A4DF4]' // ACTIVE STATE
-                                    : 'text-gray-600 hover:bg-gray-50 hover:text-[#6A4DF4]' // INACTIVE STATE
+                                className={`cursor-pointer w-full flex items-center gap-3 px-4 py-2 rounded-lg font-bold transition-colors ${activeTab === 'category'
+                                    ? 'bg-[#4522f0] text-white' // ACTIVE STATE
+                                    : 'text-gray-600 hover:bg-[#3c21bf] hover:text-white' // INACTIVE STATE
                                     }`}
                             >
                                 Category
                             </button>
 
-                            {/* Other Links (Static) */}
+                            <button
+                                onClick={() => setActiveTab('Course')}
+                                className={`cursor-pointer w-full flex items-center gap-3 px-4 py-2 rounded-lg font-bold transition-colors ${activeTab === 'Course'
+                                    ? 'bg-[#4522f0] text-white' // ACTIVE STATE
+                                    : 'text-gray-600 hover:bg-[#3c21bf] hover:text-white' // INACTIVE STATE
+                                    }`}
+                            >
+                                Course
+                            </button>
 
-                            <a href="#" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-[#6A4DF4] rounded-lg font-medium transition-colors">
-                                <FaBook /> Enrolled Courses
-                            </a>
-                            <a href="#" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-[#6A4DF4] rounded-lg font-medium transition-colors">
-                                <FaHeart /> Wishlist
-                            </a>
-                            <a href="#" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-[#6A4DF4] rounded-lg font-medium transition-colors">
-                                <FaStar /> Reviews
-                            </a>
-                            <a href="#" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-[#6A4DF4] rounded-lg font-medium transition-colors">
-                                <FaHistory /> My Quiz Attempts
-                            </a>
-                            <a href="#" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-[#6A4DF4] rounded-lg font-medium transition-colors">
-                                <FaShoppingBag /> Order History
-                            </a>
+                            <button
+                                onClick={() => setActiveTab('FaqManager')}
+                                className={`cursor-pointer w-full flex items-center gap-3 px-4 py-2 rounded-lg font-bold transition-colors ${activeTab === 'FaqManager'
+                                    ? 'bg-[#4522f0] text-white' // ACTIVE STATE
+                                    : 'text-gray-600 hover:bg-[#3c21bf] hover:text-white' // INACTIVE STATE
+                                    }`}
+                            >
+                                FaqManager
+                            </button>
+
+                            <button
+                                onClick={() => setActiveTab('ModuleManager')}
+                                className={`cursor-pointer w-full flex items-center gap-3 px-4 py-2 rounded-lg font-bold transition-colors ${activeTab === 'ModuleManager'
+                                    ? 'bg-[#4522f0] text-white' // ACTIVE STATE
+                                    : 'text-gray-600 hover:bg-[#3c21bf] hover:text-white' // INACTIVE STATE
+                                    }`}
+                            >
+                                Modules
+                            </button>
+
+                            <button
+                                onClick={() => setActiveTab('TopicManager')}
+                                className={`cursor-pointer w-full flex items-center gap-3 px-4 py-2 rounded-lg font-bold transition-colors ${activeTab === 'TopicManager'
+                                    ? 'bg-[#4522f0] text-white' // ACTIVE STATE
+                                    : 'text-gray-600 hover:bg-[#3c21bf] hover:text-white' // INACTIVE STATE
+                                    }`}
+                            >
+                                Topics
+                            </button>
+
+                            <button
+                                onClick={() => setActiveTab('BannerManager')}
+                                className={`cursor-pointer w-full flex items-center gap-3 px-4 py-2 rounded-lg font-bold transition-colors ${activeTab === 'BannerManager'
+                                    ? 'bg-[#4522f0] text-white' // ACTIVE STATE
+                                    : 'text-gray-600 hover:bg-[#3c21bf] hover:text-white' // INACTIVE STATE
+                                    }`}
+                            >
+                                Banner Manager
+                            </button>
+
+                            <button
+                                onClick={() => setActiveTab('TestimonialManager')}
+                                className={`cursor-pointer w-full flex items-center gap-3 px-4 py-2 rounded-lg font-bold transition-colors ${activeTab === 'TestimonialManager'
+                                    ? 'bg-[#4522f0] text-white' // ACTIVE STATE
+                                    : 'text-gray-600 hover:bg-[#3c21bf] hover:text-white' // INACTIVE STATE
+                                    }`}
+                            >
+                                Testimonial Manager
+                            </button>
+
+                            <button
+                                onClick={() => setActiveTab('RegisterMessageManager')}
+                                className={`cursor-pointer w-full flex items-center gap-3 px-4 py-2 rounded-lg font-bold transition-colors ${activeTab === 'RegisterMessageManager'
+                                    ? 'bg-[#4522f0] text-white' // ACTIVE STATE
+                                    : 'text-gray-600 hover:bg-[#3c21bf] hover:text-white' // INACTIVE STATE
+                                    }`}
+                            >
+                                Register Manager
+                            </button>
+
+                           
+
+                            <button
+                                onClick={() => setActiveTab('ArticleManager')}
+                                className={`cursor-pointer w-full flex items-center gap-3 px-4 py-2 rounded-lg font-bold transition-colors ${activeTab === 'ArticleManager'
+                                    ? 'bg-[#4522f0] text-white' // ACTIVE STATE
+                                    : 'text-gray-600 hover:bg-[#3c21bf] hover:text-white' // INACTIVE STATE
+                                    }`}
+                            >
+                                Article Manager
+                            </button>
+
+                           
                         </nav>
 
-                        {/* INSTRUCTOR SECTION */}
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mt-8 mb-4">Instructor</p>
-                        <nav className="space-y-1">
-                            <a href="#" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-[#6A4DF4] rounded-lg font-medium transition-colors">
-                                <FaBookOpen /> My Courses
-                            </a>
-                            <a href="#" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-[#6A4DF4] rounded-lg font-medium transition-colors">
-                                <FaBullhorn /> Announcements
-                            </a>
-                        </nav>
-
+                        
                         {/* USER SECTION */}
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mt-8 mb-4">User</p>
                         <nav className="space-y-1">
@@ -217,6 +279,115 @@ const Dashboard = () => {
                         )}
 
                     </div>
+
+                    <div className=''>
+
+                        {activeTab === 'Course' && (
+                            <div>
+                                <h1 className="text-3xl font-bold mb-6 text-gray-800 p-4">
+                                    Course Manager
+                                </h1>
+                                <Course />
+                            </div>
+                        )}
+
+                    </div>
+
+                    <div className=''>
+
+                        {activeTab === 'FaqManager' && (
+                            <div>
+                                <h1 className="text-3xl font-bold mb-6 text-gray-800 p-4">
+                                    Faq Manager
+                                </h1>
+                                <FaqManager />
+                            </div>
+                        )}
+
+                    </div>
+
+                    <div className=''>
+
+                        {activeTab === 'ModuleManager' && (
+                            <div>
+                                <h1 className="text-3xl font-bold mb-6 text-gray-800 p-4">
+                                    Faq Manager
+                                </h1>
+                                <ModuleManager />
+                            </div>
+                        )}
+
+                    </div>
+
+                    <div className=''>
+
+                        {activeTab === 'TopicManager' && (
+                            <div>
+                                <h1 className="text-3xl font-bold mb-6 text-gray-800 p-4">
+                                    Topic Manager
+                                </h1>
+                                <TopicManager />
+                            </div>
+                        )}
+
+                    </div>
+
+                    <div className=''>
+
+                        {activeTab === 'BannerManager' && (
+                            <div>
+                                <h1 className="text-3xl font-bold mb-6 text-gray-800 p-4">
+                                    Topic Manager
+                                </h1>
+                                <BannerManager />
+                            </div>
+                        )}
+
+                    </div>
+
+
+
+                    <div className=''>
+
+                        {activeTab === 'TestimonialManager' && (
+                            <div>
+                                <h1 className="text-3xl font-bold mb-6 text-gray-800 p-4">
+                                    Testimonial Manager
+                                </h1>
+                                <TestimonialManager />
+                            </div>
+                        )}
+
+                    </div>
+
+
+
+                    <div className=''>
+
+                        {activeTab === 'RegisterMessageManager' && (
+                            <div>
+                                <h1 className="text-3xl font-bold mb-6 text-gray-800 p-4">
+                                    Register Message Manager
+                                </h1>
+                                <RegisterMessageManager />
+                            </div>
+                        )}
+
+                    </div>
+                    <div className=''>
+
+                        {activeTab === 'ArticleManager' && (
+                            <div>
+                                <h1 className="text-3xl font-bold mb-6 text-gray-800 p-4">
+                                    Register Message Manager
+                                </h1>
+                                <ArticleManager />
+                            </div>
+                        )}
+
+                    </div>
+
+
                 </main>
             </div>
         </div>

@@ -1,40 +1,49 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom'; // 1. Import Outlet
 import './App.css';
 
-// --- IMPORT THE NEW COMPONENT ---
-import ScrollToTop from './components/ScrollToTop'; 
-
+import ScrollToTop from './components/ScrollToTop';
 import Login from './pages/Login';
-import About from './pages/About';
-import Home from './pages/Home';
-import ContactUs from './pages/ContactUs';
+// import About from './pages/About';
+// import Home from './pages/Home';
+// import ContactUs from './pages/ContactUs';
 import AdminDashboard from './pages/AdminDashboard';
-import Category from './components/AdminComponents/Category';
-import NavBar from './components/Navbar';
+import Category from './components/AdminComponents/CategoryManager';
+// import NavBar from './components/Navbar';
 import Footer from './components/Footer';
+
+// 2. Create a Layout Component
+// This component renders the Navbar, the child page (Outlet), and the Footer
+const MainLayout = () => {
+  return (
+    <>
+      {/* <NavBar /> */}
+      <div className="main-content">
+        <Outlet /> {/* This represents the component of the current route (e.g., Home, About) */}
+      </div>
+      <Footer />
+    </>
+  );
+};
 
 function App() {
   return (
     <Router>
-      {/* --- ADD IT HERE --- */}
-      <ScrollToTop /> 
-      {/* ------------------- */}
-
+      <ScrollToTop />
       <div className="App">
-        <NavBar />
-        
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<ContactUs />} />
-          <Route path="/login" element={<Login />} />
+
+          <Route element={<MainLayout />}>
+            {/* <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<ContactUs />} /> */}
+            <Route path="/login" element={<Login />} />
+          </Route>
+
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/category" element={<Category />} />
-          
-        </Routes>
 
-        <Footer />
+        </Routes>
       </div>
     </Router>
   );

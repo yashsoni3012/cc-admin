@@ -1,1 +1,7 @@
+# Netlify Proxy Rule
+# This takes any request starting with /api/
+# And sends it to the backend WITHOUT the /api prefix (matches your rewrite logic)
 /api/* https://codingcloud.pythonanywhere.com/:splat  200
+
+# Handle React Router (prevents 404 on refresh)
+/* /index.html  200

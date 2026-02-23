@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>React State & Events</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: linear-gradient(135deg, #43cea2, #185a9d);
+      color: #333;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 40px auto;
+      background: #ffffff;
+      padding: 35px;
+      border-radius: 14px;
+      box-shadow: 0 18px 35px rgba(0, 0, 0, 0.25);
+    }
+
+    h1 {
+      text-align: center;
+      color: #2d3748;
+      margin-bottom: 35px;
+    }
+
+    h2 {
+      color: #2b6cb0;
+      margin-top: 40px;
+    }
+
+    h3 {
+      color: #444;
+      margin-top: 20px;
+    }
+
+    p {
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .card {
+      background: #f7fafc;
+      border-left: 6px solid #2b6cb0;
+      padding: 22px;
+      margin: 25px 0;
+      border-radius: 10px;
+    }
+
+    code {
+      background: #edf2f7;
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-family: Consolas, monospace;
+      color: #c53030;
+    }
+
+    pre {
+      background: #1a202c;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 10px;
+      overflow-x: auto;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    ul {
+      list-style: none;
+      padding-left: 0;
+      margin-top: 10px;
+    }
+
+    ul li {
+      margin: 8px 0;
+      font-size: 16px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #2b6cb0;
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 13px;
+      margin-right: 6px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    table th, table td {
+      border: 1px solid #cbd5e0;
+      padding: 10px;
+      text-align: center;
+    }
+
+    table th {
+      background: #2b6cb0;
+      color: white;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 45px;
+      font-size: 14px;
+      color: #666;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>React State & Events</h1>
+
+    <!-- STATE SECTION -->
+    <h2>7. State</h2>
+
+    <div class="card">
+      <h3>What is State?</h3>
+      <p>
+        <strong>State</strong> is a built-in React object used to store data
+        that can change over time and affect how the UI behaves.
+      </p>
+
+      <ul>
+        <li><span class="badge">✔</span> State is mutable</li>
+        <li><span class="badge">✔</span> When state changes → component re-renders</li>
+        <li><span class="badge">✔</span> State is local to a component</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Static Example</h3>
+      <pre>
+function Counter() {
+  return &lt;h1&gt;0&lt;/h1&gt;;
+}
+      </pre>
+      <p>This value is static. To make it dynamic, we use <strong>state</strong>.</p>
+    </div>
+
+    <div class="card">
+      <h3>useState Hook</h3>
+      <p>
+        <code>useState</code> is a React Hook used to create and manage state
+        in functional components.
+      </p>
+
+      <pre>
+import { useState } from "react";
+
+function Counter() {
+  const [count, setCount] = useState(0);
+  return &lt;h1&gt;{count}&lt;/h1&gt;;
+}
+      </pre>
+
+      <ul>
+        <li><span class="badge">count</span> current state value</li>
+        <li><span class="badge">setCount</span> function to update state</li>
+        <li><span class="badge">0</span> initial value</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Updating State</h3>
+      <p><strong>Never update state directly.</strong></p>
+
+      <p>❌ Wrong:</p>
+      <pre>
+count = count + 1;
+      </pre>
+
+      <p>✅ Correct:</p>
+      <pre>
+setCount(count + 1);
+      </pre>
+    </div>
+
+    <div class="card">
+      <h3>Example with Button</h3>
+      <pre>
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <>
+      &lt;h1&gt;{count}&lt;/h1&gt;
+      &lt;button onClick={() => setCount(count + 1)}&gt;
+        Increment
+      &lt;/button&gt;
+    </>
+  );
+}
+      </pre>
+    </div>
+
+    <div class="card">
+      <h3>Updating State Using Previous Value</h3>
+      <pre>
+setCount(prevCount => prevCount + 1);
+      </pre>
+
+      <p>
+        React batches state updates for performance, so using the previous
+        value ensures accuracy.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>State vs Props</h3>
+
+      <table>
+        <tr>
+          <th>Feature</th>
+          <th>State</th>
+          <th>Props</th>
+        </tr>
+        <tr>
+          <td>Mutability</td>
+          <td>Mutable</td>
+          <td>Immutable</td>
+        </tr>
+        <tr>
+          <td>Ownership</td>
+          <td>Inside component</td>
+          <td>Passed from parent</td>
+        </tr>
+        <tr>
+          <td>Purpose</td>
+          <td>Manage data</td>
+          <td>Pass data</td>
+        </tr>
+        <tr>
+          <td>Updated by</td>
+          <td>useState</td>
+          <td>Parent only</td>
+        </tr>
+      </table>
+
+      <pre>
+&lt;Counter initialValue={5} /&gt;
+
+function Counter({ initialValue }) {
+  const [count, setCount] = useState(initialValue);
+}
+      </pre>
+    </div>
+
+    <!-- EVENTS SECTION -->
+    <h2>8. Events</h2>
+
+    <div class="card">
+      <h3>Handling Events</h3>
+      <p>
+        React events use <strong>camelCase</strong> and JSX syntax.
+      </p>
+
+      <pre>
+&lt;button onClick={handleClick}&gt;Click Me&lt;/button&gt;
+
+function handleClick() {
+  alert("Button clicked!");
+}
+      </pre>
+    </div>
+
+    <div class="card">
+      <h3>onClick Event</h3>
+      <pre>
+&lt;button onClick={() => console.log("Clicked!")}&gt;
+  Click
+&lt;/button&gt;
+      </pre>
+
+      <p>✔ Always pass a function</p>
+      <p>❌ Wrong:</p>
+
+      <pre>
+onClick={handleClick()}
+      </pre>
+    </div>
+
+    <div class="card">
+      <h3>onChange Event</h3>
+      <pre>
+function Input() {
+  const [text, setText] = useState("");
+
+  return (
+    &lt;input
+      type="text"
+      value={text}
+      onChange={(e) => setText(e.target.value)}
+    /&gt;
+  );
+}
+      </pre>
+
+      <p>
+        <code>e</code> is a <strong>Synthetic Event</strong>
+        (React wrapper around native events).
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>Passing Parameters to Events</h3>
+
+      <p><strong>Method 1: Arrow Function (Recommended)</strong></p>
+      <pre>
+&lt;button onClick={() => handleDelete(5)}&gt;
+  Delete
+&lt;/button&gt;
+
+function handleDelete(id) {
+  console.log(id);
+}
+      </pre>
+
+      <p><strong>Method 2: bind()</strong></p>
+      <pre>
+&lt;button onClick={handleDelete.bind(null, 5)}&gt;
+  Delete
+&lt;/button&gt;
+      </pre>
+
+      <p><strong>Method 3: Event + Parameter</strong></p>
+      <pre>
+&lt;button onClick={(e) => handleClick(e, "Hello")}&gt;
+  Click
+&lt;/button&gt;
+
+function handleClick(event, message) {
+  console.log(message);
+}
+      </pre>
+    </div>
+
+    <div class="footer">
+      © React Basics – State & Events
+    </div>
+
+  </div>
+
+</body>
+</html>
