@@ -26,7 +26,7 @@ const CategoryManager = () => {
   // Form Fields
   const [formData, setFormData] = useState({ name: "", text: "", image: null });
 
-  // --- ✅ FIXED: Handle Image URL for Previews ---
+  // --- FIXED: Handle Image URL for Previews ---
   const getImageUrl = (img) => {
     if (!img) return null;
     
@@ -49,7 +49,7 @@ const CategoryManager = () => {
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
   const handleFile = (e) => setFormData({ ...formData, image: e.target.files[0] });
 
-  // --- ✅ FIXED: Load existing image URL into state ---
+  // --- FIXED: Load existing image URL into state ---
   const handleEdit = (item) => {
     setFormData({ 
         name: item.name || "", 
@@ -66,7 +66,7 @@ const CategoryManager = () => {
     setShowForm(false);
   };
 
-  // --- ✅ FIXED: Robust Submit Handler (Like CourseManager) ---
+  // --- FIXED: Robust Submit Handler ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -76,11 +76,11 @@ const CategoryManager = () => {
     formDataToSend.append("text", formData.text);
 
     // 2. Only append 'image' if it is a NEW File. 
-    // If it is a string (old URL) or null, do NOT append it (or append empty string if creating)
+    // If it is a string (old URL) or null, do NOT append it
     if (formData.image instanceof File) {
         formDataToSend.append("image", formData.image);
     } else {
-        // If creating new, and no image, send empty string to avoid "required" errors (if backend allows blank)
+        // If creating new, and no image, send empty string
         if (!editingId) formDataToSend.append("image", ""); 
     }
 
@@ -240,7 +240,7 @@ const CategoryManager = () => {
                 <input type="text" name="name" className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" value={formData.name} onChange={handleChange} required />
               </div>
               
-              {/* ✅ FIXED: Image Preview Section */}
+              {/* FIXED: Image Preview Section */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Image</label>
                 <div className="border border-gray-300 rounded-lg p-2 bg-gray-50 flex items-center gap-3">

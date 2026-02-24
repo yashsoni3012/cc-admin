@@ -64,14 +64,16 @@ const TopicManager = () => {
         const coursesRes = await fetch(API.COURSES.LIST);
         const coursesJson = await coursesRes.json();
         // Adjust based on your API response structure for courses
-        const coursesData = coursesJson.data || coursesJson.results || coursesJson;
-setCourses(Array.isArray(coursesData) ? coursesData : []);
+        const coursesData =
+          coursesJson.data || coursesJson.results || coursesJson;
+        setCourses(Array.isArray(coursesData) ? coursesData : []);
 
         // Fetch Modules
         const modulesRes = await fetch(API.MODULES.LIST);
         const modulesJson = await modulesRes.json();
-        const modulesData = modulesJson.data || modulesJson.results || modulesJson;
-setModules(Array.isArray(modulesData) ? modulesData : []);
+        const modulesData =
+          modulesJson.data || modulesJson.results || modulesJson;
+        setModules(Array.isArray(modulesData) ? modulesData : []);
         // Fetch Topics (grouped by module)
         const topicsRes = await fetch(API.TOPICS.LIST);
         const topicsJson = await topicsRes.json();
@@ -104,15 +106,17 @@ setModules(Array.isArray(modulesData) ? modulesData : []);
   }, [selectedCourseId, modules]);
 
   // --- Flatten topics for display with course context ---
-const flattenedTopics = Array.isArray(topicsByModule)
-  ? topicsByModule.flatMap(moduleGroup =>
-      (Array.isArray(moduleGroup.topics) ? moduleGroup.topics : []).map(topic => ({
-        ...topic,
-        module_id: moduleGroup.module_id,
-        module_name: moduleGroup.module_name,
-      }))
-    )
-  : [];
+  const flattenedTopics = Array.isArray(topicsByModule)
+    ? topicsByModule.flatMap((moduleGroup) =>
+        (Array.isArray(moduleGroup.topics) ? moduleGroup.topics : []).map(
+          (topic) => ({
+            ...topic,
+            module_id: moduleGroup.module_id,
+            module_name: moduleGroup.module_name,
+          }),
+        ),
+      )
+    : [];
 
   // --- Handlers ---
   const handleCourseChange = (e) => {
