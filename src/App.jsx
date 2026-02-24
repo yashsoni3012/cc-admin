@@ -6,7 +6,6 @@ import ScrollToTop from './components/ScrollToTop';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import Category from './components/AdminComponents/CategoryManager';
-import Footer from './components/Footer';
 
 // Protected Route wrapper component
 const ProtectedRoute = ({ children }) => {
@@ -26,7 +25,6 @@ const ProtectedLayout = () => {
       <div className="main-content">
         <Outlet />
       </div>
-      <Footer />
     </>
   );
 };
